@@ -1,0 +1,16 @@
+{
+  "Mongo": {
+    "host": "localhost",
+    "client": "mongodb",
+    "port": 27017,
+    "dbName": "articles_dev"
+  },
+  "Auth": {
+    "tokenSecret": "useThisSecret",
+    "tokenTimeStamp": 18000,
+    "key_seed": "xdmkkxna"
+  },
+  "Log4js": {
+    "confPath": "log4js_config.json"
+  }
+}

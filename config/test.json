@@ -1,0 +1,19 @@
+{
+  "Mongo": {
+    "host": "localhost",
+    "client": "mongodb",
+    "port": 27017,
+    "dbName": "articles_test"
+  },
+  "Auth": {
+    "tokenSecret": "useThisSecret",
+    "tokenTimeStamp": 108000,
+    "key_seed": "xdmkkxna"
+  },
+  "Log4js": {
+    "confPath": "log4js_config_test.json"
+  },
+  "Supertest": {
+    "url": "http://localhost:8000"
+  }
+}

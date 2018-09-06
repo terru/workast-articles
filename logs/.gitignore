@@ -1,0 +1,2 @@
+#ignore all log files, but create the directory
+*.log

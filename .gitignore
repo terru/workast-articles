@@ -1,0 +1,20 @@
+# Linux
+.directory
+*~
+
+# npm
+node_modules
+*.log
+*.gz
+
+#ide
+.idea/
+
+#possible databases dumps
+dump/
+
+#tmp for possible uploaded files
+tmp/
+
+#private configurations
+config/production*

@@ -1,0 +1,42 @@
+{
+  "name": "Workast-articles",
+  "main": "server.js",
+  "scripts": {
+    "start": "NODE_ENV=production node ./bin/server",
+    "test": "NODE_ENV=test mocha",
+    "dev": "NODE_ENV=development nodemon ./bin/server"
+  },
+  "dependencies": {
+    "async": "^2.1.4",
+    "base64encodedecode": "0.0.14",
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "1.18.3",
+    "chance": "^1.0.16",
+    "debug": "^3.1.0",
+    "decimal.js": "^10.0.1",
+    "ejs": "^2.3.4",
+    "express": "~4.16.*",
+    "express-jwt": "^5.1.0",
+    "html-entities": "^1.2.0",
+    "jsonwebtoken": "^8.3.0",
+    "log4js": "^3.0.5",
+    "moment": "^2.10.6",
+    "mongo-sanitize": "^1.0.0",
+    "mongoose": "^4.0.1",
+    "msexcel-builder": "0.0.2",
+    "nodemon": "^1.17.3",
+    "passport": "^0.4.0",
+    "passport-http": "^0.3.0",
+    "passport-http-bearer": "^1.0.1",
+    "passport-local": "^1.0.0",
+    "request": "^2.58.0",
+    "request-promise": "^4.1.1",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "supertest": "^3.1.0",
+    "mocha": "^3.2.0",
+    "factory-girl": "^1.6.0",
+    "should": "^13.2.3"
+  }
+}

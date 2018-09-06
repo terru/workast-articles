@@ -1,0 +1,27 @@
+{
+  "appenders": {
+    "out": {
+      "type": "console"
+    },
+    "middleware": {
+      "type": "file",
+      "filename": "logs/test-middleware.log",
+      "category": "middleware"
+    },
+    "access": {
+      "type": "file",
+      "filename": "logs/test-access.log",
+      "category": "access"
+    }
+  },
+  "categories": {
+    "default": {
+      "appenders": [
+        "out",
+        "middleware",
+        "access"
+      ],
+      "level": "info"
+    }
+  }
+}
