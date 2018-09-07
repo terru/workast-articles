@@ -1,3 +1,11 @@
+/**
+ * Wrapper class for Log4js logger
+ * @use log4js
+ * @usage var logger = new Logger();
+ *        logger.msg("String to log");
+ *        msg = warn,fatal,debug,trace,error,info
+ */
+
 var log4js = require('log4js');
 var config = require('../config');
 
@@ -5,16 +13,14 @@ log4js.configure(__dirname + '/../config/' + config.Log4js.confPath, {});
 
 /**
  * Logger
- * @use log4js
- * @param tipo el tipo de log que por defecto es middleware
- * @param level el nivel de log que por defecto es 'INFO'
+ * @param type log type (by defect is settend in the application logger: workast-articles)
+ * @param level log level to use (by defect setted as 'INFO')
  */
-var Logger = function (tipo, level) {
-    if (tipo == null) {
+var Logger = function (type, level) {
+    if (type == null) {
         var aLog = log4js.getLogger('middleware');
-    }
-    else {
-        var aLog = log4js.getLogger(tipo);
+    } else {
+        var aLog = log4js.getLogger(type);
     }
 
     if (level == null) {
@@ -51,8 +57,3 @@ var Logger = function (tipo, level) {
 };
 
 module.exports = Logger;
-/**
- * @usage var logger = new Logger();
- *        logger.msg("String to log");
- *        msg = warn,fatal,debug,trace,error,info
- */

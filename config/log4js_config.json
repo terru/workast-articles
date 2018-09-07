@@ -3,24 +3,10 @@
     "out": {
       "type": "console"
     },
-    "middleware": {
+    "workast-articles": {
       "type": "file",
-      "filename": "logs/middleware.log",
-      "category": "middleware",
-      "maxLogSize": 204800,
-      "backups": 10
-    },
-    "TPT": {
-      "type": "file",
-      "filename": "logs/tpt.log",
-      "category": "TPT",
-      "maxLogSize": 204800,
-      "backups": 10
-    },
-    "stripe": {
-      "type": "file",
-      "filename": "logs/stripe.log",
-      "category": "stripe",
+      "filename": "logs/workast-articles.log",
+      "category": "workast-articles",
       "maxLogSize": 204800,
       "backups": 10
     },
@@ -36,9 +22,7 @@
     "default": {
       "appenders": [
         "out",
-        "middleware",
-        "TPT",
-        "stripe",
+        "workast-articles",
         "access"
       ],
       "level": "info"

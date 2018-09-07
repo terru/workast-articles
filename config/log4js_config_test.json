@@ -3,9 +3,9 @@
     "out": {
       "type": "console"
     },
-    "middleware": {
+    "workast-articles": {
       "type": "file",
-      "filename": "logs/test-middleware.log",
+      "filename": "logs/test-workast-articles.log",
       "category": "middleware"
     },
     "access": {
