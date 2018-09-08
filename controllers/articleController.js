@@ -1,31 +1,17 @@
-//requerir el documento
-var App = require('../models/article');
+//models
+var Article = require('../models/article');
 
-//requerir el loger
+//utils
 var myLogClass = require('../utils/logger');
 var logger = new myLogClass();
-
-//requerir el generador de keys
-var bCrypt = require('bcrypt-nodejs');
-var config = require('../config');
-
-//requerir el helper de seguridad
 var securityController = require('../utils/securityController');
 var sanitize = new securityController();
 
-//simuacion de semilla para app_keys
-KEY_SEED = 'adacqwe';
 
-
-//Generador de app_key y app_secrets
-function Key_gen() {
-    var seed = KEY_SEED + Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
-    return bCrypt.hashSync(seed, false);
-}
-
-//Métodos GET para /api/applications
-exports.listApps = function (req, res, next) {
-    App.find(function (err, apps) {
+//GET controller for/api/articles
+//TODO add some tags
+exports.listArticles = function (req, res, next) {
+    Article.find(function (err, apps) {
         if (err) {
             logger.error('Error al intentar recuperar todas las aplicaciones');
             logger.error('El error es: ' + err);
@@ -35,90 +21,124 @@ exports.listApps = function (req, res, next) {
     });
 };
 
-exports.getApp = function (req, res, next) {
-    var validId = sanitize.getValidId(req.params.id);
-    if (validId == false) {
-        return res.json(412, {message: "Id inválido"});
-    }
-    App.findOne({_id: validId}, function (err, app) {
+//POST controller for /api/articles
+exports.createArticle = function (req, res, next) {
+    //Do some validations
+    //Fixme validations could be maded by mongoose or an specific library
+    //the user id must be a valid mongo id
+    var validUserId = sanitize.getValidId(req.body.userId);
+    if (validUserId == false) return res.status(412).json({message: "Invalid User Id"});
+    //title and text are required and the article at least needs 1 tag
+    if (!req.body.title) return res.status(412).json({message: "Article Title is required"});
+    if (!req.body.text) return res.status(412).json({message: "Article Text is required"});
+    var tags = req.body.tags ? req.body.tags.split(",") : [];
+    if (tags.length < 1) return res.status(412).json({message: "The article needs at least 1 tag"});
+
+    //check that user exists
+    var article = new Article();
+    User.findById(validUserId, function (err, usr) {
         if (err) {
-            logger.error('Error al buscar una  app con id: ' + req.params.id + ' el error es:');
+            logger.error("Error looking for a user in article creation");
             logger.error(err);
-            return next(err);
         }
-        if (app != undefined) {
-            return res.json({message: "La app es: ", app: app});
-        } else {
-            return res.json({message: 'No existe la app'});
-        }
+        if (!usr) return res.status(412).json({message: "The User doesn't exist"});
+        article.userId = usr._id;
+        article.title = req.body.title;
+        article.text = req.body.text;
+        article.tags = tags;
+        article.created_at = new Date();
+        article.updated_at = new Date();
+        article.save(function (err) {
+            if (err) {
+                logger.error('Error in article creation');
+                logger.error(err);
+                return next(err);
+            }
+            logger.info('Article with id: ' + article._id + " successfully created");
+            return res.json({message: 'Article created', article: article});
+        });
     });
 };
 
 
-// Métodos POST para /api/applications
-exports.createApp = function (req, res, next) {
-    var app = new App();
-    app.app_key = Key_gen();
-    app.app_secret = Key_gen();
-    app.created_at = new Date();
-    app.updated_at = new Date();
-    app.save(function (err) {
-        if (err) {
-            logger.error('Error al añadir  la aplicación con app_key: ' + app.app_key + ' el error es:');
-            logger.error(err);
-            return next(err);
-        }
-        logger.info('App añadida con éxito');
-        return res.json({message: 'App añadida', app: app});
-    });
-
-};
+//controlllers for /api/article/:id
 
 
-//Métodos PUT para /api/applications
-//ESTE METODO VUELVE A ASIGNAR APP_KEY Y APP_SECRET
-exports.updateApp = function (req, res, next) {
-    var validId = sanitize.getValidId(req.params.id);
-    if (validId == false) {
-        return res.json(412, {message: "Id inválido"});
-    }
-    App.findOne({_id: validId},
-        function (err, app) {
+//controller for PUT /api/articles/:id
+exports.updateArticle = function (req, res, next) {
+    const private_update = function (articleId, userId) {
+        Article.findById(articleId, function (err, article) {
             if (err) {
                 logger.error('Error al actualizar la aplicación: ' + req.params.id + 'el error es:');
                 logger.error(err);
                 return next(err);
             }
-            //modifico los atributos de la app
-            app.updated_at = new Date();
-            app.app_key = Key_gen();
-            app.app_secret = Key_gen();
+            //update all the article properties that comes in the request chechinkg special cases
+            for (var prop in article) {
+                switch (prop) {
+                    case "userId":
+                        //use the validated userId
+                        if (userId) article.userId = userId;
+                        break;
+                    case "tags":
+                        article.tags = req.body.tags.split(",");
+                        break;
+                    default:
+                        article[prop] = req.body[prop];
+                }
+            }
+            //set de last_updated date;
+            article.updated_at = new Date();
             // guardo la app
-            app.save(function (err) {
+            article.save(function (err) {
                 if (err) {
                     return res.json(err);
                 }
-                logger.info('Se actualizó la app con id: ' + req.params.id);
-                res.json({message: 'App updated!', app: app});
+                logger.info('Article with id : ' + req.params.id + 'successfully updated');
+                res.json({message: 'Article updated!', article: article});
             });
         });
-};
-
-
-//Métodos DELETE de /api/applications
-exports.deleteApp = function (req, res, next) {
+    };
     var validId = sanitize.getValidId(req.params.id);
     if (validId == false) {
-        return res.json(412, {message: "Id inválido"});
+        return res.status(412).json({message: "Invalid Article Id"});
     }
-    App.remove({_id: validId},
-        function (err, app) {
+    //the request could come with userId to change article ownership
+    if (req.body.userId) {
+        var validUserId = sanitize.getValidId(req.body.userId);
+        if (validUserId == false) return res.status(412).json({message: "Invalid User Id"});
+        User.findById(validUserId, function (err, usr) {
             if (err) {
-                logger.error('Error al intentar borrar la aplicación: ' + req.params.id, ' el error es:');
+                logger.error("Error looking for an user for article with id:" + validId + "updating");
                 logger.error(err);
                 return next(err);
             }
-            logger.info('La aplicación: ' + req.params.id + ' fue eliminada exitosamente');
-            res.json({message: 'Eliminacion exitosa'});
+            if (!usr) {
+                return res.status(412).json({message: "The User doesn't exist"});
+            }
+            return private_update(validId, validUserId);
         });
+    } else {
+        //without ownership change, discard not needed databases querys
+        return private_update(validId);
+    }
+};
+
+
+//controller for DELETE /api/articles/:id
+exports.deleteArticle = function (req, res, next) {
+    var validId = sanitize.getValidId(req.params.id);
+    if (validId == false) {
+        return res.status(412).json({message: "Invalid Article Id"});
+    }
+    //Fixme we could use logical deletion in the short term
+    Article.deleteOne({_id: validId}, function (err) {
+        if (err) {
+            logger.error('Error trying to delete an article with id: ' + req.params.id);
+            logger.error(err);
+            return next(err);
+        }
+        logger.info('Article ' + req.params.id + ' successfully deleted ');
+        res.json({message: 'Article deleted'});
+    });
 };
