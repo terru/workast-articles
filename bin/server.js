@@ -36,7 +36,7 @@ var router = express.Router();
 
 // Initial dummy route for testing
 router.get('/', function (req, res) {
-    res.json({message: 'API Working!'});
+    res.json({message: 'Articles API Working!'});
 });
 
 // Register all our routes with /api
@@ -59,5 +59,8 @@ app.use(function (err, req, res, next) {
 app.listen(port);
 
 exports.app = app;
-
-console.log('Express is running in port: ' + port);
+if (process.env.TOKEN) {
+    console.log('Articles API is running in port: ' + port + ' with authorization mode');
+} else {
+    console.log('Articles API is running in port: ' + port);
+}
