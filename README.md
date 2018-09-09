@@ -18,7 +18,7 @@ If you need to run in production, you will need to define by your own:
  * npm script for production mode
 
 
-##Usage
+## Usage
 For usage in authorization mode is necessary to add the private app token.
 You can add the token in the Authorization Header using the Bearer prefix.
 Example Request:
