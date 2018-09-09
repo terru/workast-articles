@@ -1,4 +1,5 @@
 //models
+var User = require('../models/user');
 var Article = require('../models/article');
 
 //utils
@@ -9,15 +10,28 @@ var sanitize = new securityController();
 
 
 //GET controller for/api/articles
-//TODO add some tags
 exports.listArticles = function (req, res, next) {
-    Article.find(function (err, apps) {
+    console.log(req.query.tags);
+    //TODO poner aca la solucion para 1 solo tag
+    //list all articles if not tags specifed
+    var filter = {}; //dinamic filter, you can add more filter like with AND logic if you want HERE
+    if (req.query.tags && req.query.tags.length > 0) {
+        //sanitize tags to avoid mongo injection
+        var sanitized = [];
+        for (var t in req.query.tags) {
+            sanitized.push(sanitize.cleanup(req.query.tags[t]));
+        }
+        console.log(sanitized);
+        filter.tags = {$all: sanitized};
+    }
+    Article.find(filter, function (err, articles) {
         if (err) {
-            logger.error('Error al intentar recuperar todas las aplicaciones');
-            logger.error('El error es: ' + err);
+            logger.error('Error in articles retrieving');
+            logger.error(err);
             return next(err);
         }
-        res.json({message: "Las aplicaciones son: ", applications: apps});
+        //fixme you maybe will need to add pagination for navigate the articles listing
+        res.json({message: "Articles retrieved", articles: articles});
     });
 };
 
@@ -25,14 +39,15 @@ exports.listArticles = function (req, res, next) {
 exports.createArticle = function (req, res, next) {
     //Do some validations
     //Fixme validations could be maded by mongoose or an specific library
+    //title and text are required and the article at least needs 1 tag
+    if (!req.body.title) return res.status(412).json({message: "Article title is required"});
+    if (!req.body.text) return res.status(412).json({message: "Article text is required"});
     //the user id must be a valid mongo id
     var validUserId = sanitize.getValidId(req.body.userId);
     if (validUserId == false) return res.status(412).json({message: "Invalid User Id"});
-    //title and text are required and the article at least needs 1 tag
-    if (!req.body.title) return res.status(412).json({message: "Article Title is required"});
-    if (!req.body.text) return res.status(412).json({message: "Article Text is required"});
-    var tags = req.body.tags ? req.body.tags.split(",") : [];
-    if (tags.length < 1) return res.status(412).json({message: "The article needs at least 1 tag"});
+
+    var tags = req.body.tags ? req.body.tags.replace(/\s/g, '').split(",") : [];
+    if (tags.length < 1) return res.status(412).json({message: "The article needs at least one tag"});
 
     //check that user exists
     var article = new Article();
@@ -40,6 +55,7 @@ exports.createArticle = function (req, res, next) {
         if (err) {
             logger.error("Error looking for a user in article creation");
             logger.error(err);
+            return next(err);
         }
         if (!usr) return res.status(412).json({message: "The User doesn't exist"});
         article.userId = usr._id;
@@ -61,7 +77,7 @@ exports.createArticle = function (req, res, next) {
 };
 
 
-//controlllers for /api/article/:id
+//controllers for /api/article/:id
 
 
 //controller for PUT /api/articles/:id

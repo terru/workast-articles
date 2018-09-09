@@ -14,7 +14,7 @@ app.use(passport.initialize());
 
 //routers are defined here
 var users = require('../routes/users');
-//var articles = require('../routes/articles');
+var articles = require('../routes/articles');
 
 //if your mongo is in a customized location, you can customize from development.json
 //@see config/development.json
@@ -42,14 +42,14 @@ router.get('/', function (req, res) {
 // Register all our routes with /api
 app.use('/api', router);
 app.use('/api/users', users);
-//app.use('/api/articles', articles);
+app.use('/api/articles', articles);
 
 //generic error handling from every controller
 app.use(function (err, req, res, next) {
     if (res.headersSent) {
         return next(err);
     }
-    if (err == 401) { //handler para los errores de autorizacion
+    if (err == 401) { //Authorization errors handler
         return res.status(err).send({message: "Authorization Error"})
     }
     return res.status(500).send(err);
