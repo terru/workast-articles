@@ -7,22 +7,22 @@ var myLogClass = require('../utils/logger');
 var logger = new myLogClass();
 var securityController = require('../utils/securityController');
 var sanitize = new securityController();
-
+var _ = require("underscore");
 
 //GET controller for/api/articles
 exports.listArticles = function (req, res, next) {
-    console.log(req.query.tags);
-    //TODO poner aca la solucion para 1 solo tag
     //list all articles if not tags specifed
     var filter = {}; //dinamic filter, you can add more filter like with AND logic if you want HERE
-    if (req.query.tags && req.query.tags.length > 0) {
+    if (req.query.tags && Array.isArray(req.query.tags)) {
         //sanitize tags to avoid mongo injection
         var sanitized = [];
         for (var t in req.query.tags) {
             sanitized.push(sanitize.cleanup(req.query.tags[t]));
         }
-        console.log(sanitized);
         filter.tags = {$all: sanitized};
+    } else if (req.query.tags) {
+        //sanitation for 1 tag
+        filter.tags = sanitize.cleanup(req.query.tags);
     }
     Article.find(filter, function (err, articles) {
         if (err) {
@@ -82,6 +82,7 @@ exports.createArticle = function (req, res, next) {
 
 //controller for PUT /api/articles/:id
 exports.updateArticle = function (req, res, next) {
+    if (_.isEmpty(req.body)) res.status(412).json({message: "Can't update with empty body"});
     const private_update = function (articleId, userId) {
         Article.findById(articleId, function (err, article) {
             if (err) {
@@ -90,14 +91,14 @@ exports.updateArticle = function (req, res, next) {
                 return next(err);
             }
             //update all the article properties that comes in the request chechinkg special cases
-            for (var prop in article) {
+            for (var prop in req.body) {
                 switch (prop) {
                     case "userId":
                         //use the validated userId
                         if (userId) article.userId = userId;
                         break;
                     case "tags":
-                        article.tags = req.body.tags.split(",");
+                        article.tags = req.body.tags.replace(/\s/g, '').split(",");
                         break;
                     default:
                         article[prop] = req.body[prop];
